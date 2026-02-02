@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Tomato Disease Detection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+/* ================= BASE ================= */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* ================= VIDEO BACKGROUND ================= */
+
+#bg-video {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+/* Dark Overlay */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: -1;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+    width: 100%;
+    background: #179140;
+    color: white;
+    padding: 12px 25px;
+    position: fixed;
+    top: 0;
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-right {
+    display: flex;
+    gap: 30px;
+    padding-right: 40px;
+}
+
+.nav-item {
+    color: white;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+/* ================= ABOUT ================= */
+
+.about-section {
+    width: 90%;
+    max-width: 800px;
+    margin: 90px auto 0;
+
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+/* ================= CARD ================= */
+
+.card {
+    position: relative; /* IMPORTANT for overlay */
+
+    background: #fff;
+    width: 90%;
+    max-width: 650px;
+
+    padding: 25px;
+    margin: 20px auto 0;
+
+    border-radius: 20px;
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ================= FORM ================= */
+
+.lang-select {
+    margin-bottom: 10px;
+    padding: 8px;
+
+    border-radius: 8px;
+    border: 1px solid #4caf50;
+
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ================= UPLOAD ================= */
+
+.upload-box {
+    position: relative;
+
+    width: 100%;
+    max-width: 450px;
+
+    margin: 10px auto;
+
+    border: 3px dashed #4caf50;
+    border-radius: 15px;
+
+    padding: 30px 15px;
+
+    cursor: pointer;
+
+    background: #f9fff9;
+    text-align: center;
+
+    transition: all 0.3s ease;
+}
+
+/* Drag Active */
+.upload-box.dragover {
+    background: #e8f5e9;
+    border-color: #2e7d32;
+
+    box-shadow: 0 0 20px rgba(76,175,80,0.8);
+
+    transform: scale(1.03);
+}
+
+/* Pulse Effect */
+.upload-box.dragover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    border-radius: 15px;
+
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+
+    0% {
+        box-shadow: 0 0 0 0 rgba(76,175,80,0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(76,175,80,0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(76,175,80,0);
+    }
+}
+
+/* ================= PREVIEW ================= */
+
+#preview {
+    display: block;
+
+    margin: 15px auto 0;
+
+    max-width: 100%;
+    max-height: 180px;
+
+    border-radius: 12px;
+}
+
+/* ================= BUTTON ================= */
+
+button {
+    width: 100%;
+    max-width: 450px;
+
+    margin-top: 15px;
+    padding: 15px;
+
+    font-size: 16px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: linear-gradient(90deg,#43a047,#66bb6a);
+    color: #fff;
+
+    cursor: pointer;
+    font-weight: 700;
+}
+
+button:disabled {
+    background: #ccc;
+}
+
+/* ================= LOADER ================= */
+
+.loader {
+    width: 70px;
+    height: 70px;
+
+    border: 7px solid #e0e0e0;
+    border-top: 7px solid #43a047;
+
+    border-radius: 50%;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ================= OVERLAY ================= */
+
+.loader-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(255,255,255,0.9);
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 20px;
+
+    z-index: 100;
+}
+
+/* ================= LOADING ================= */
+
+.loading {
+    display: none;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* ================= PROGRESS ================= */
+
+.progress-box {
+    width: 100%;
+    max-width: 450px;
+
+    margin: 20px auto 0;
+
+    display: none;
+    text-align: left;
+}
+
+.progress-bar {
+    height: 32px;
+
+    background: #e0e0e0;
+
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+
+    color: white;
+    font-weight: bold;
+
+    text-align: center;
+    line-height: 32px;
+
+    transition: width 1s;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+    #bg-video {
+        display: none;
+    }
+
+    body {
+        background: #2e7d32;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= VIDEO ================= -->
+
+<video autoplay muted loop id="bg-video">
+  <source src="/static/bg.mp4" type="video/mp4">
+</video>
+
+<!-- ================= NAVBAR ================= -->
+
+<div class="navbar">
+  <h3>🍅 AI Tomato Disease Diagnostic System</h3>
+
+  <div class="nav-right">
+    <a href="/" class="nav-item">🏠 Home</a>
+    <a href="/medicine" class="nav-item">💊 Medicine</a>
+  </div>
+</div>
+
+<!-- ================= ABOUT ================= -->
+
+<div class="about-section">
+  <h4 id="scanHint">Upload a leaf image to analyze disease</h4>
+</div>
+
+<!-- ================= CARD ================= -->
+
+<div class="card">
+
+  <!-- Loader Overlay -->
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader"></div>
+  </div>
+
+  <select class="lang-select" id="typeSelect">
+    <option value="leaf">🍃 Leaf Disease</option>
+    <option value="fruit">🍅 Fruit Disease</option>
+  </select>
+
+  <h2>Detection Panel</h2>
+
+  <div class="upload-box" id="uploadBox">
+    <p id="uploadText">📷 Tap to Upload or Drag Image</p>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+  </div>
+
+  <img id="preview">
+
+  <button id="analyzeBtn">Analyze Leaf with AI</button>
+
+  <div class="loading" id="loading">🔍 Analyzing...</div>
+
+  <div class="progress-box" id="progressBox">
+    <b>Result: <span id="detectedName"></span></b>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill">0%</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+
+<script>
+
+const uploadBox = document.getElementById("uploadBox");
+const uploadText = document.getElementById("uploadText");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+
+const analyzeBtn = document.getElementById("analyzeBtn");
+const loading = document.getElementById("loading");
+const loaderOverlay = document.getElementById("loaderOverlay");
+
+const progressBox = document.getElementById("progressBox");
+const progressFill = document.getElementById("progressFill");
+const detectedName = document.getElementById("detectedName");
+
+const typeSelect = document.getElementById("typeSelect");
+const scanHint = document.getElementById("scanHint");
+
+/* Upload Click */
+uploadBox.onclick = () => fileInput.click();
+
+/* Drag Over */
+uploadBox.ondragover = e => {
+  e.preventDefault();
+
+  uploadBox.classList.add("dragover");
+  uploadText.innerText = "📥 Drop Image Here";
+};
+
+/* Drag Leave */
+uploadBox.ondragleave = () => {
+
+  uploadBox.classList.remove("dragover");
+  uploadText.innerText = "📷 Tap to Upload or Drag Image";
+};
+
+/* Drop */
+uploadBox.ondrop = e => {
+  e.preventDefault();
+
+  uploadBox.classList.remove("dragover");
+  uploadText.innerText = "Image Selected ✔";
+
+  fileInput.files = e.dataTransfer.files;
+  previewImage();
+};
+
+/* File Select */
+fileInput.onchange = () => {
+
+  uploadText.innerText = "Image Selected ✔";
+  previewImage();
+};
+
+/* Preview */
+function previewImage() {
+
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+
+    preview.src = e.target.result;
+    preview.style.display = "block";
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/* Type Change */
+typeSelect.onchange = () => {
+
+  analyzeBtn.innerText =
+    typeSelect.value === "leaf"
+    ? "Analyze Leaf with AI"
+    : "Analyze Fruit with AI";
+
+  scanHint.innerText =
+    typeSelect.value === "leaf"
+    ? "Upload a leaf image to analyze disease"
+    : "Upload a fruit image to analyze disease";
+};
+
+/* Analyze */
+analyzeBtn.onclick = async () => {
+
+  if (!fileInput.files[0]) {
+
+    alert("Please upload an image first");
+    return;
+  }
+
+  loading.style.display = "block";
+  loaderOverlay.style.display = "flex";
+
+  progressBox.style.display = "none";
+  analyzeBtn.disabled = true;
+
+  const fd = new FormData();
+
+  fd.append("file", fileInput.files[0]);
+  fd.append("type", typeSelect.value);
+
+  try {
+
+    const res = await fetch("/predict", {
+      method: "POST",
+      body: fd
+    });
+
+    const data = await res.json();
+
+    loading.style.display = "none";
+    loaderOverlay.style.display = "none";
+
+    analyzeBtn.disabled = false;
+
+    progressBox.style.display = "block";
+
+    detectedName.innerText = data.disease.replace(/_/g," ");
+
+    setTimeout(() => {
+
+      progressFill.style.width = data.confidence + "%";
+      progressFill.innerText = data.confidence + "%";
+
+      if (data.confidence >= 80) {
+        progressFill.style.background =
+          "linear-gradient(90deg,#2e7d32,#43a047)";
+      }
+      else if (data.confidence >= 60) {
+        progressFill.style.background =
+          "linear-gradient(90deg,#f9a825,#fbc02d)";
+      }
+      else {
+        progressFill.style.background =
+          "linear-gradient(90deg,#c62828,#e53935)";
+      }
+
+    }, 100);
+
+    setTimeout(() => {
+
+      window.location.href =
+        `/medicine?disease=${data.disease}`;
+
+    }, 2500);
+
+  }
+  catch(err) {
+
+    alert("Server error");
+
+    loading.style.display = "none";
+    loaderOverlay.style.display = "none";
+
+    analyzeBtn.disabled = false;
+  }
+};
+
+</script>
+
+</body>
+</html>

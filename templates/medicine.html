@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tomato Disease Treatment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(120deg,#0f2027,#203a43,#2c5364);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* ================= VIDEO BACKGROUND ================= */
+
+#bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    z-index: -1;
+}
+
+/* Top Bar */
+.top-bar {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.icon-btn {
+    background: #090109;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Container */
+.container {
+    background: rgb(242, 236, 236);
+    width: 90%;
+    max-width: 700px;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+/* Headings */
+h1 {
+    text-align: center;
+    color: #1b5e20;
+    margin-bottom: 10px;
+}
+
+h2 {
+    text-align: center;
+    color: #c62828;
+    margin-top: 0;
+}
+
+/* Sections */
+.section {
+    margin-top: 20px;
+}
+
+.section h3 {
+    color: #2e7d32;
+}
+
+.section ul {
+    margin-left: 20px;
+}
+
+/* Buttons */
+.btn {
+    display: block;
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg,#43a047,#66bb6a);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Print Mode */
+@media print {
+
+    body {
+        background: white;
+    }
+
+    .btn,
+    .top-bar {
+        display: none;
+    }
+
+    .container {
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
+/* Blinking Scan Button */
+.blink-btn {
+    background: linear-gradient(90deg,#ff9800,#ff5722);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    animation: blink 1.2s infinite;
+}
+
+@keyframes blink {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+</style>
+</head>
+
+<body>
+
+  
+<!-- Top Right Icons -->
+<div class="top-bar">
+  <button class="icon-btn" onclick="goHome()" title="Home">🏠</button>
+  <button class="icon-btn" onclick="printReport()" title="Print">🖨️</button>
+</div>
+
+<div class="container" id="report">
+  
+<!-- ================= BACKGROUND VIDEO ================= -->
+<video autoplay muted loop id="bg-video">
+  <source src="/static/bg m.mp4" type="video/mp4">
+</video>
+
+<h1>🍅 Tomato Disease Diagnosis</h1>
+<h2 id="diseaseTitle">Loading...</h2>
+
+<div class="section">
+  <h3>🧪 Description</h3>
+  <p id="description"></p>
+</div>
+
+<div class="section">
+  <h3>💊 Recommended Treatment</h3>
+  <ul id="treatment"></ul>
+</div>
+
+<div class="section">
+  <h3>🛡️ Prevention Tips</h3>
+  <ul id="prevention"></ul>
+</div>
+
+<button class="btn" onclick="goBack()">⬅ Back to Scan</button>
+
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+
+// If no disease → show scan first screen
+const disease = params.get("disease") || "no_scan";
+
+/* Disease Data */
+const diseaseData = {
+
+  // ========== NO SCAN ==========
+  no_scan: {
+    title: "Scan Image First",
+    desc: "Please upload and scan a tomato leaf or fruit image before viewing medicine.",
+    treatment: [],
+    prevention: [],
+    showScanBtn: true
+  },
+
+  // ========== LEAF ==========
+  Bacterial_spot: {
+    title: "Bacterial Spot",
+    desc: "A bacterial disease causing dark spots on leaves and fruits.",
+    treatment: [
+      "Use copper-based bactericides",
+      "Remove infected plant parts",
+      "Avoid overhead irrigation"
+    ],
+    prevention: [
+      "Use disease-free seeds",
+      "Practice crop rotation",
+      "Maintain proper spacing"
+    ]
+  },
+
+  Early_Blight: {
+    title: "Early Blight",
+    desc: "A fungal disease causing ring spots on leaves.",
+    treatment: [
+      "Apply fungicide",
+      "Remove infected leaves",
+      "Improve airflow"
+    ],
+    prevention: [
+      "Rotate crops",
+      "Water at base",
+      "Mulch soil"
+    ]
+  },
+
+  Late_Blight: {
+    title: "Late Blight",
+    desc: "Fast spreading fungal disease.",
+    treatment: [
+      "Apply systemic fungicide",
+      "Remove infected plants"
+    ],
+    prevention: [
+      "Use resistant varieties",
+      "Ensure drainage"
+    ]
+  },
+
+  Anthracnose: {
+    title: "Anthracnose",
+    desc: "Fungal fruit disease causing dark lesions.",
+    treatment: [
+      "Remove infected fruits",
+      "Apply fungicide"
+    ],
+    prevention: [
+      "Harvest early",
+      "Avoid injury"
+    ]
+  },
+
+  Fruit_Rot: {
+    title: "Fruit Rot",
+    desc: "Soft decay of fruits due to fungus.",
+    treatment: [
+      "Remove infected fruits",
+      "Reduce moisture"
+    ],
+    prevention: [
+      "Avoid waterlogging",
+      "Keep field clean"
+    ]
+  },
+
+  healthy: {
+    title: "Healthy Plant",
+    desc: "No disease detected. Plant is healthy.",
+    treatment: [
+      "No treatment required"
+    ],
+    prevention: [
+      "Maintain watering",
+      "Monitor weekly"
+    ]
+  }
+};
+
+// Get data
+const data = diseaseData[disease] || diseaseData["no_scan"];
+
+// Elements
+const titleEl = document.getElementById("diseaseTitle");
+const descEl = document.getElementById("description");
+const treatmentBox = document.getElementById("treatment");
+const preventionBox = document.getElementById("prevention");
+const backBtn = document.querySelector(".btn");
+
+// Set title & desc
+titleEl.innerText = data.title;
+descEl.innerText = data.desc;
+
+// Clear lists
+treatmentBox.innerHTML = "";
+preventionBox.innerHTML = "";
+
+if (disease === "no_scan") {
+
+  treatmentBox.innerHTML = `
+    <li style="list-style:none;text-align:center;font-size:60px;">🍅</li>
+
+    <li style="list-style:none;text-align:center;font-size:18px;margin-top:10px;">
+      Upload Tomato Image to Start Scan
+    </li>
+
+    <li style="list-style:none;text-align:center;">
+      <button class="blink-btn" onclick="goHome()">
+        🔍 Scan Now
+      </button>
+    </li>
+  `;
+
+  preventionBox.innerHTML = "";
+
+  backBtn.style.display = "none";
+}
+
+
+  backBtn.innerText = "📷 Scan Now";
+  backBtn.onclick = () => {
+    window.location.href = "/";
+  };
+
+
+// Normal disease
+{
+
+  data.treatment.forEach(item => {
+    const li = document.createElement("li");
+    li.innerText = item;
+    treatmentBox.appendChild(li);
+  });
+
+  data.prevention.forEach(item => {
+    const li = document.createElement("li");
+    li.innerText = item;
+    preventionBox.appendChild(li);
+  });
+
+  backBtn.innerText = "⬅ Back to Scan";
+}
+
+// Buttons
+function goBack() {
+  window.location.href = "/";
+}
+
+function goHome() {
+  window.location.href = "/";
+}
+
+function printReport() {
+  window.print();
+}
+</script>
+
