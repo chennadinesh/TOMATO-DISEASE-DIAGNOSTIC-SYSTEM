@@ -534,3 +534,231 @@ analyzeBtn.onclick = async () => {
 
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Tomato Disease Detection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* LOCK SCROLLING AND SET FULLSCREEN */
+html, body {
+    margin: 0; padding: 0; width: 100%; height: 100vh; overflow: hidden; font-family: "Segoe UI", sans-serif;
+}
+body {
+    background: linear-gradient(120deg,#0f2027,#203a43,#2c5364);
+    display: flex; flex-direction: column; align-items: center;
+}
+
+/* NAVBAR */
+.navbar {
+    width: 100%; background: #179140; color: white; padding: 12px 25px; position: fixed; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
+}
+.nav-right { display: flex; gap: 35px; padding-right: 50px; }
+.nav-item { color: white; text-decoration: none; font-size: 15px; cursor: pointer; transition: .3s; }
+
+.about-section {
+    width: 90%; max-width: 800px; margin-top: 80px; background: white; padding: 12px; border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.15); color: #333; text-align: center; font-size: 13px;
+}
+
+/* MAIN PANEL */
+.card { 
+    background: #fff; width: 90%; max-width: 650px; padding: 25px; margin-top: 15px; border-radius: 20px; 
+    box-shadow: 0 15px 40px rgba(0,0,0,.25); text-align: center; box-sizing: border-box;
+}
+
+h1 { color: #e3dcdb; margin: 0 0 10px 0; font-size: 24px; }
+
+.lang-select {
+    margin-bottom: 15px; padding: 8px; border-radius: 8px; border: 1px solid #4caf50;
+    font-size: 14px; outline: none; cursor: pointer;
+}
+
+.upload-box { 
+    margin-top: 10px; border: 3px dashed #4caf50; border-radius: 15px; padding: 30px 15px; 
+    cursor: pointer; background-color: #f9fff9; transition: 0.3s;
+}
+.upload-box:hover { background-color: #f0fff0; border-color: #2e7d32; }
+.upload-box.dragover { background-color: #e8f5e9; border-style: solid; }
+
+#uploadText { font-size: 16px; font-weight: 500; color: #1b5e20; }
+input[type=file] { display: none; } 
+
+#preview { 
+    margin-top: 15px; max-width: 100%; max-height: 180px; /* Reduced height to ensure bar fits */
+    border-radius: 12px; display: none; object-fit: contain;
+}
+
+button { 
+    width: 100%; margin-top: 15px; padding: 15px; font-size: 16px; border: none; border-radius: 10px; 
+    background: linear-gradient(90deg,#43a047,#66bb6a); color: #fff; cursor: pointer; font-weight: 700; 
+}
+button:disabled { background: #ccc; cursor:not-allowed; }
+
+.loading { display: none; margin-top: 15px; font-weight: 600; color: #1b5e20; }
+
+/* --- FIXED PROGRESS BAR STYLING --- */
+.progress-box { display: none; margin-top: 20px; text-align: left; }
+.progress-bar { 
+    height: 32px; /* Increased height */
+    background: #e0e0e0; 
+    border-radius: 16px; 
+    overflow: hidden; 
+    margin-top: 10px;
+    border: 1px solid #ccc;
+}
+.progress-fill { 
+    height: 100%; 
+    width: 0%; 
+    background: linear-gradient(90deg, #2e7d32, #43a047); /* Stronger Green */
+    text-align: center; 
+    color: #fff; 
+    font-size: 14px; 
+    line-height: 32px; /* Center text vertically */
+    font-weight: bold; 
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy animation */
+}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="nav-left"><h1>🍅 AI-Based Tomato Crop Disease Diagnostic System</h1></div>
+  <div class="nav-right">
+    <a href="/" class="nav-item">🏠 Home</a>
+    <a href="/medicine" class="nav-item">💊 Medicine</a>
+  </div>
+</div>
+
+<div class="about-section">
+  <p id="about-text"><h2><b>Quick Scan:</h2></b><h4>Click the box below or drag an image to analyze leaf health.</h4></p>
+</div>
+
+<div class="card">
+    <select class="lang-select" id="langSelect">
+        <option value="en">English</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+    </select>
+
+    <h2 id="title">Detection Panel</h2>
+    
+    <div class="upload-box" id="uploadBox">
+        <p id="uploadText">📷 Tap to Upload or Drag Image</p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <center><img id="preview"></center>
+    
+    <button id="analyzeBtn">Analyze Leaf with AI</button>
+    
+    <div class="loading" id="loading">🔍 Deep Scanning Patterns...</div>
+
+    <div class="progress-box" id="progressBox">
+        <b id="result-text" style="font-size: 16px;">Result:</b> 
+        <span id="detectedName" style="color: #1b5e20; font-weight: bold; font-size: 16px;"></span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+    </div>
+</div>
+
+<script>
+const translations = {
+    en: { about: "Quick Scan: Click the box below to analyze leaf health.", title: "Detection Panel", upload: "📷 Tap to Upload or Drag Image", analyze: "Analyze Leaf with AI", scan: "🔍 Deep Scanning Patterns...", result: "Result:", uploaded: "Image Selected" },
+    te: { about: "త్వరిత స్కాన్: ఆకు ఆరోగ్యాన్ని విశ్లేషించడానికి క్రింది బాక్స్‌ను క్లిక్ చేయండి.", title: "గుర్తింపు ప్యానెల్", upload: "📷 అప్‌లోడ్ చేయడానికి నొక్కండి", analyze: "AI ఆకును విశ్లేషించండి", scan: "🔍 నమూనాలను స్కాన్ చేస్తోంది...", result: "ఫలితం:", uploaded: "చిత్రం ఎంపిక చేయబడింది" },
+    hi: { about: "त्वरित स्कैन: पत्ती के स्वास्थ्य का विश्लेषण करने के लिए नीचे दिए गए बॉक्स पर क्लिक करें।", title: "डिटेक्शन पैनल", upload: "📷 अपलोड करने के लिए टैप करें", analyze: "पत्ती का विश्लेषण करें", scan: "🔍 पैटर्न स्कैन किया जा रहा है...", result: "परिणाम:", uploaded: "छवि चुनी गई" },
+    ta: { about: "விரைவான ஸ்கேன்: இலையின் ஆரோக்கியத்தை பகுப்பாய்வு செய்ய கீழே உள்ள பெட்டியைக் கிளிக் செய்யவும்.", title: "கண்டறிதல் குழு", upload: "📷 பதிவேற்ற தட்டவும்", analyze: "இலையை ஆய்வு செய்", scan: "🔍 வடிவங்களை ஸ்கேன் செய்கிறது...", result: "முடிவு:", uploaded: "படம் தேர்ந்தெடுக்கப்பட்டது" },
+    kn: { about: "ತ್ವರಿತ ಸ್ಕ್ಯಾನ್: ಎಲೆಯ ಆರೋಗ್ಯವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಕೆಳಗಿನ ಬಾಕ್ಸ್ ಕ್ಲಿಕ್ ಮಾಡಿ.", title: "ಪತ್ತೆ ಫಲಕ", upload: "📷 ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ", analyze: "ಎಲೆಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ", scan: "🔍 ಸ್ಕ್ಯಾನಿಂಗ್ ನಡೆಯುತ್ತಿದೆ...", result: "ಫಲಿತಾಂಶ:", uploaded: "ಚಿತ್ರ ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ" }
+};
+
+const langSelect = document.getElementById("langSelect");
+langSelect.addEventListener("change", (e) => {
+    const l = translations[e.target.value];
+    document.getElementById("about-text").innerHTML = `<b>Quick Scan:</b> ${l.about}`;
+    document.getElementById("title").innerText = l.title;
+    document.getElementById("uploadText").innerText = l.upload;
+    document.getElementById("analyzeBtn").innerText = l.analyze;
+    document.getElementById("loading").innerText = l.scan;
+    document.getElementById("result-text").innerText = l.result;
+});
+
+const fileInput = document.getElementById("fileInput");
+const uploadBox = document.getElementById("uploadBox");
+const preview = document.getElementById("preview");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const progressBox = document.getElementById("progressBox");
+const progressFill = document.getElementById("progressFill");
+
+uploadBox.onclick = () => fileInput.click();
+
+uploadBox.ondragover = (e) => { e.preventDefault(); uploadBox.classList.add("dragover"); };
+uploadBox.ondragleave = () => uploadBox.classList.remove("dragover");
+uploadBox.ondrop = (e) => {
+    e.preventDefault();
+    uploadBox.classList.remove("dragover");
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        handlePreview(fileInput.files[0]);
+    }
+};
+
+fileInput.onchange = () => { if(fileInput.files[0]) handlePreview(fileInput.files[0]); };
+
+function handlePreview(file) {
+    const reader = new FileReader();
+    reader.onload = e => { 
+        preview.src = e.target.result; 
+        preview.style.display = "block"; 
+        document.getElementById("uploadText").innerText = translations[langSelect.value].uploaded;
+    };
+    reader.readAsDataURL(file);
+}
+
+analyzeBtn.onclick = async () => {
+    if (!fileInput.files[0]) return alert("Please select a leaf image first.");
+    
+    document.getElementById("loading").style.display = "block";
+    progressBox.style.display = "none";
+    analyzeBtn.disabled = true;
+
+    const fd = new FormData();
+    fd.append("file", fileInput.files[0]);
+
+    try {
+        const res = await fetch("/predict", { method: "POST", body: fd });
+        const data = await res.json();
+        
+        document.getElementById("loading").style.display = "none";
+        analyzeBtn.disabled = false;
+
+        progressBox.style.display = "block";
+        document.getElementById("detectedName").innerText = data.disease.replace(/_/g," ");
+        
+        // Ensure the browser registers the block display before animating
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                progressFill.style.width = data.confidence + "%";
+                progressFill.innerText = data.confidence + "%";
+            }, 50);
+        });
+
+        setTimeout(() => {
+            window.location.href = `/medicine?disease=${data.disease}&lang=${langSelect.value}`;
+        }, 2800);
+        
+    } catch(err) { 
+        alert("Server error."); 
+        document.getElementById("loading").style.display = "none";
+        analyzeBtn.disabled = false;
+    }
+};
+</script>
+</body>
+</html>

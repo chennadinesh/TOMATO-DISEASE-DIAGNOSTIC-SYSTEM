@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
 <meta charset="UTF-8">
 <title>Tomato Disease Treatment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -369,3 +370,185 @@ function printReport() {
 }
 </script>
 
+=======
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Diagnostic Report</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: linear-gradient(120deg,#0f2027,#203a43,#2c5364); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0; }
+        .navbar { width: 100%; background: #0b2c3d; color: white; padding: 12px 25px; position: fixed; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; }
+        .nav-right { display: flex; gap: 20px; align-items: center; }
+        .nav-item { color: white; text-decoration: none; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .container { background: white; color: #333; width: 90%; max-width: 800px; border-radius: 20px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); margin-top: 80px; margin-bottom: 40px; }
+        h1 { color: #1b5e20; text-align: center; margin: 0 0 20px 0; }
+
+        /* SEVERITY & INSIGHT BOX */
+        .insight-box {
+            background: #f0f7ff;
+            border: 1px solid #005cc5;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            color: #032f62;
+        }
+        .severity-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            color: white;
+        }
+        .sev-high { background-color: #e53e3e; } /* Red */
+        .sev-med { background-color: #dd6b20; }  /* Orange */
+        .sev-low { background-color: #38a169; }  /* Green */
+
+        .disease-header { background: #e8f5e9; padding: 15px; border-left: 5px solid #4caf50; border-radius: 8px; margin-bottom: 25px; }
+        .medication-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .medication-table th, .medication-table td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        .medication-table th { background-color: #f4f4f4; color: #1b5e20; }
+        
+        .usage-note { 
+            margin-top: 20px; padding: 18px; background: #fff5f5; border: 2px solid #fc8181;
+            border-radius: 12px; font-size: 14.5px; color: #a02020; line-height: 1.6;
+        }
+
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        .btn { padding: 12px 25px; border-radius: 8px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 15px; transition: 0.3s; }
+        .back-btn { background: #1b5e20; color: white; }
+        .print-btn { background: #0277bd; color: white; }
+
+        @media print {
+            .navbar, .action-buttons, .back-btn { display: none !important; }
+            .container { margin-top: 0 !important; box-shadow: none !important; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-left">🍅 AI-Based Tomato Crop Disease Diagnostic System</div>
+    <div class="nav-right">
+        <a href="/" class="nav-item">🏠 <span id="ui-nav-home">Home</span></a>
+        <div class="nav-item" onclick="window.print()">🖨️ <span id="ui-nav-print">Print</span></div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 id="ui-title">🍅Plant Health Diagnostic Report🍅</h1>
+    
+    <div class="insight-box">
+        <b>🔬 AI Diagnostic Reasoning:</b> <br>
+        <span id="ui-reasoning">Analyzing morphological features...</span> <br>
+        <div id="severity-tag" class="severity-badge">Calculating Severity...</div>
+    </div>
+
+    <div class="disease-header">
+        <strong id="ui-condition">Detected Pathogen:</strong> 
+        <span id="disease-display" style="text-transform: capitalize; font-weight: bold; color: #1b5e20;">{{ disease.replace('_', ' ') }}</span>
+    </div>
+
+    <table class="medication-table">
+        <thead>
+            <tr>
+                <th id="ui-th-med">Intervention Protocol</th>
+                <th id="ui-th-use">Application Strategy</th>
+            </tr>
+        </thead>
+        <tbody id="medication-body"></tbody>
+    </table>
+
+    <div class="usage-note" id="ui-safety">
+        <b>⚠️ Expert Triage & Safety:</b> <br>
+        1. Always wear <b>protective hand gloves</b> before handling the plant. <br>
+        2. Manually <b>remove and destroy</b> all infected leaves/biomass. <br>
+        3. Prioritize sanitation to stop pathogen spread before applying chemicals.
+    </div>
+
+    <div class="action-buttons">
+        <a href="/" class="btn back-btn" id="ui-back">New Diagnosis</a>
+        <button class="btn print-btn" onclick="window.print()" id="ui-btn-print">Export Report</button>
+    </div>
+</div>
+
+<script>
+    const disease = "{{ disease }}";
+    const urlParams = new URLSearchParams(window.location.search);
+    const lang = urlParams.get('lang') || 'en';
+
+    const translations = {
+        en: {
+            navHome: "Home", title: "Plant Health Diagnostic Report", condition: "Diagnostic Result:",
+            thMed: "Intervention Protocol", thUse: "Application Strategy",
+            back: "New Diagnosis", print: "Export PDF",
+            sevLabel: "Threat Level: ",
+            reasoning: {
+                Bacterial_Spot: "Identified greasy, water-soaked lesions indicative of bacterial pathogen colonization.",
+                Early_Blight: "Detected concentric 'target-like' ring patterns typical of Alternaria solani fungal spores.",
+                Late_Blight: "Identified dark, water-soaked patches typical of Phytophthora infestans.",
+                Septoria_Leaf_Spot: "Detected small grey-centered circular spots with dark borders.",
+                Yellow_Leaf_Curl: "Identified upward leaf curling and marginal chlorosis suggestive of viral vector.",
+                Healthy: "No physiological or pathogenic anomalies detected on the leaf surface."
+            },
+            data: {
+                Bacterial_Spot: [["Copper Sprays", "Protective coating to stop bacterial division."], ["Streptomycin", "Antibiotic for systemic control."]],
+                Early_Blight: [["Chlorothalonil", "Preventative fungicide to block spore germination."], ["Mancozeb", "Broad-spectrum contact fungicide."]],
+                Late_Blight: [["Ridomil Gold", "Systemic fungicide for rapid infection control."]],
+                Healthy: [["Organic Compost", "Strengthens cellular immunity and growth."]]
+            }
+        },
+        te: {
+            navHome: "హోమ్", title: "మొక్కల ఆరోగ్య నివేదిక", condition: "వ్యాధి రకం:",
+            back: "కొత్త నిర్ధారణ", print: "నివేదిక ఎగుమతి",
+            sevLabel: "తీవ్రత స్థాయి: ",
+            reasoning: {
+                Bacterial_Spot: "బ్యాక్టీరియా వల్ల కలిగే నీటి మచ్చలు గుర్తించబడ్డాయి.",
+                Early_Blight: "వలయాకారపు మచ్చలు 'Alternaria solani' ఉనికిని సూచిస్తున్నాయి.",
+                Healthy: "మొక్క ఆరోగ్యంగా ఉంది."
+            },
+            data: {
+                Early_Blight: [["క్లోరోథలోనిಲ್", "వ్యాధి నివారణకు ఉపయోగపడే మందు."]],
+                Healthy: [["సేంద్రీయ ఎరువు", "మొక్క ఎదుగుదలకు సహాయపడుతుంది."]]
+            }
+        }
+    };
+
+    function applyTranslations() {
+        const t = translations[lang] || translations['en'];
+        
+        document.getElementById('ui-nav-home').innerText = t.navHome || "Home";
+        document.getElementById('ui-title').innerText = t.title || "Diagnostic Report";
+        document.getElementById('ui-condition').innerText = t.condition || "Result:";
+        document.getElementById('ui-back').innerText = t.back || "New Diagnosis";
+        document.getElementById('ui-btn-print').innerText = t.print || "Print Report";
+
+        document.getElementById('ui-reasoning').innerText = t.reasoning[disease] || "Diagnostic analysis based on morphological features.";
+
+        // SEVERITY LOGIC
+        const sevTag = document.getElementById('severity-tag');
+        if (disease === 'Healthy') {
+            sevTag.innerText = (t.sevLabel || "Threat: ") + "Low / None";
+            sevTag.className = "severity-badge sev-low";
+            document.getElementById('ui-safety').style.display = 'none';
+        } else if (disease === 'Late_Blight' || disease === 'Yellow_Leaf_Curl') {
+            sevTag.innerText = (t.sevLabel || "Threat: ") + "High Risk";
+            sevTag.className = "severity-badge sev-high";
+        } else {
+            sevTag.innerText = (t.sevLabel || "Threat: ") + "Moderate";
+            sevTag.className = "severity-badge sev-med";
+        }
+
+        const rows = t.data[disease] || [["General Care", "Monitor plant regularly."]];
+        const tbody = document.getElementById('medication-body');
+        tbody.innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+    }
+
+    applyTranslations();
+</script>
+
+</body>
+</html>
+>>>>>>> 21c2ef7f91ac61ad54c70e517d0ceea8153757b3
