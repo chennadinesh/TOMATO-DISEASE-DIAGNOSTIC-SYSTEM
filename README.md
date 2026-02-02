@@ -190,6 +190,6 @@ Mohan Babu University, Tirupati
 
 📬 Contact
 
-📧 Email: yourmail@gmail.com
+📧 Email: chennadineshc9@gmail.com
 
-🔗 GitHub: https://github.com/yourusername
+🔗 GitHub: https://github.com/chennadinesh/
